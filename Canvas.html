@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./fonts/iconfont.css">
+    <title>Canvas画版</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        overflow: hidden;
+        background-color: #fff;
+        cursor: url(./images/pen.ico), auto;
+    }
+
+    /* .bpen{
+        cursor: url(./images/pen.ico),auto;
+    } */
+    .bearse {
+        cursor: url(./images/earse.ico), auto;
+    }
+
+    #cs {
+        /* 防止移动页面跳动 */
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #fff;
+    }
+
+    .actions {
+        position: fixed;
+        right: 10px;
+        top: 0px;
+        border-radius: 20px;
+        text-align: center;
+        line-height: 50px;
+        cursor: pointer;
+    }
+
+    .header {
+        position: fixed;
+        left: 10px;
+        top: 0px;
+        border-radius: 20px;
+        text-align: center;
+        line-height: 50px;
+        cursor: pointer;
+    }
+
+    .header .iconfont {
+        font-size: 30px;
+        color: #888;
+    }
+
+    .header .iconfont:hover {
+        color: deepskyblue;
+        transform: scale(1.2);
+    }
+
+    .actions .iconfont {
+        font-size: 30px;
+        color: #ccc
+    }
+
+    .actions .pen.activate {
+        color: deepskyblue;
+        transform: scale(1.2);
+        transition: all 0.3s;
+    }
+
+    .actions .earse.activate {
+        color: deepskyblue;
+        transform: scale(1.2);
+        transition: all .3s;
+    }
+
+    .color {
+        position: fixed;
+        top: 40%;
+        left: 10px;
+        transform: all .3s;
+        transform: scale(1.2);
+    }
+
+    .color li {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+
+    .color .black {
+        background-color: black;
+    }
+
+    .color .red {
+        background-color: red;
+    }
+
+    .color .orange {
+        background-color: orange;
+    }
+
+    .color .green {
+        background-color: green;
+    }
+
+    .color .blue {
+        background-color: blue;
+    }
+
+    .color li.activate {
+        transform: scale(1.3);
+        transition: all .3s;
+    }
+</style>
+
+<body>
+    <canvas id="cs" width="600px" height="800px"></canvas>
+    <div id="actions" class="actions">
+        <div class="iconfont icon-pen pen activate" id="pen"></div>
+        <div class="iconfont icon-xiangpica earse" id="earse"></div>
+    </div>
+    <div class="header">
+        <div class="iconfont icon-lajitong clear" id="clear"></div>
+        <div class="iconfont icon-save save" id="save"></div>
+    </div>
+    <ul class="color">
+        <li id="black" class="black activate"></li>
+        <li id="red" class="red"></li>
+        <li id="orange" class="orange"></li>
+        <li id="green" class="green"></li>
+        <li id="blue" class="blue"></li>
+    </ul>
+
+</body>
+<script>
+    var using = false
+    var cs = document.querySelector("#cs")
+    var ctx = cs.getContext('2d')
+    window.onresize = function () {
+        pageResize()
+    }
+    pageResize()
+    function pageResize() {
+        var pagewidth = document.documentElement.clientWidth
+        var pageheight = document.documentElement.clientHeight
+        cs.width = pagewidth
+        cs.height = pageheight
+    }
+
+    var lastPoint = { x: undefined, y: undefined }
+    cs.onmousedown = function (e) {
+        var x = e.clientX
+        var y = e.clientY
+        if (earseEnabled) {
+            using = true
+            ctx.clearRect(x, y, 10, 10)
+        } else {
+            using = true
+            lastPoint = { x: x, y: y }
+            // console.log(lastPoint);
+        }
+    }
+    cs.onmousemove = function (e) {
+        var x = e.clientX
+        var y = e.clientY
+        if (earseEnabled) {
+            if (using) {
+                ctx.clearRect(x + 5, y + 5, 20, 20)
+            }
+        } else {
+            if (using) {
+                var newPoint = { x: x, y: y + 32 }
+                drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y)
+                lastPoint = newPoint
+            }
+        }
+
+    }
+    cs.onmouseup = function (e) {
+        using = false
+    }
+    function drawLine(x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineWidth = 5
+        ctx.lineTo(x2, y2);
+        ctx.stroke();//!must is stroke
+        ctx.closePath()
+    }
+
+    function drawPoint(x, y, radius) {
+        ctx.beginPath()
+        ctx.arc(x, y, radius, 0, Math.PI * 2)
+        ctx.fill()
+    }
+
+    var earseEnabled = false
+    var penEnable = false
+    var pen = document.querySelector('#pen')
+    var earse = document.querySelector("#earse")
+
+    pen.onclick = function () {
+        earseEnabled = false
+        pen.classList.add("activate")
+        earse.classList.remove("activate")
+        // document.body.classList.add("bpen")
+        document.body.classList.remove("bearse")
+
+    }
+    earse.onclick = function () {
+        earseEnabled = true
+        earse.classList.add("activate")
+        pen.classList.remove("activate")
+        document.body.classList.add("bearse")
+        // document.body.classList.remove("bpen")
+    }
+    clear.onclick = function () {
+        ctx.clearRect(0, 0, cs.width, cs.height)
+    }
+    save.onclick = function () {
+        var url = cs.toDataURL("image/png")
+        var a = document.createElement('a')
+        document.body.appendChild(a)
+        a.href = url
+        a.download = '我的画'
+        a.target = "_balnk"
+        a.click()
+
+        // console.log(url);
+    }
+    //特性检测
+    if (document.documentElement.ontouchstart !== undefined) {
+        cs.ontouchstart = function (e) {
+            var x = e.touches[0].clientX
+            var y = e.touches[0].clientY
+            if (earseEnabled) {
+                using = true
+                ctx.clearRect(x, y, 20, 20)
+            } else {
+                using = true
+                lastPoint = { x: x, y: y }
+                // console.log(lastPoint);
+            }
+        }
+        cs.ontouchmove = function (e) {
+            var x = e.touches[0].clientX
+            var y = e.touches[0].clientY
+            if (earseEnabled) {
+                if (using) {
+                    ctx.clearRect(x - 6, y - 6, 12, 12)
+                }
+            } else {
+                if (using) {
+                    var newPoint = { x: x, y: y }
+                    drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y)
+                    lastPoint = newPoint
+                }
+            }
+
+        }
+        cs.ontouchend = function (e) {
+            using = false
+        }
+    }
+    //改变颜色
+    black.onclick = function () {
+        ctx.strokeStyle = 'black'
+        black.classList.add('activate')
+        red.classList.remove('activate')
+        green.classList.remove('activate')
+        orange.classList.remove('activate')
+        blue.classList.remove('activate')
+    }
+    red.onclick = function () {
+        ctx.strokeStyle = 'red'
+        red.classList.add('activate')
+        black.classList.remove('activate')
+        green.classList.remove('activate')
+        orange.classList.remove('activate')
+        blue.classList.remove('activate')
+    }
+    orange.onclick = function () {
+        ctx.strokeStyle = 'orange'
+        orange.classList.add('activate')
+        red.classList.remove('activate')
+        green.classList.remove('activate')
+        black.classList.remove('activate')
+        blue.classList.remove('activate')
+    }
+    green.onclick = function () {
+        ctx.strokeStyle = 'green'
+        green.classList.add('activate')
+        red.classList.remove('activate')
+        black.classList.remove('activate')
+        orange.classList.remove('activate')
+        blue.classList.remove('activate')
+    }
+    blue.onclick = function () {
+        ctx.strokeStyle = 'blue'
+        blue.classList.add('activate')
+        red.classList.remove('activate')
+        green.classList.remove('activate')
+        orange.classList.remove('activate')
+        black.classList.remove('activate')
+    }
+
+</script>
+
+
+</html>
